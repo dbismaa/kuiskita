@@ -145,23 +145,25 @@ h1,h2,.logo-text{font-family:'Fredoka One',cursive}
 .ans-p:nth-child(3){animation-delay:0.15s}
 .ans-p:nth-child(4){animation-delay:0.2s}
 .ans-p.c1{background:linear-gradient(135deg,#FF4D6D,#FF2D50);color:#fff;box-shadow:0 5px 18px rgba(255,77,109,0.4)}
-.ans-p.c2{background:linear-gradient(135deg,#4CC9F0,#2AAEDD);color:var(--dark);box-shadow:0 5px 18px rgba(76,201,240,0.4)}
-.ans-p.c3{background:linear-gradient(135deg,#FFD93D,#FFC107);color:var(--dark);box-shadow:0 5px 18px rgba(255,217,61,0.4)}
-.ans-p.c4{background:linear-gradient(135deg,#06D6A0,#00B887);color:var(--dark);box-shadow:0 5px 18px rgba(6,214,160,0.4)}
+.ans-p.c2{background:linear-gradient(135deg,#4CC9F0,#2AAEDD);color:#fff;box-shadow:0 5px 18px rgba(76,201,240,0.4)}
+.ans-p.c3{background:linear-gradient(135deg,#FFD93D,#FFC107);color:#fff;box-shadow:0 5px 18px rgba(255,217,61,0.4)}
+.ans-p.c4{background:linear-gradient(135deg,#06D6A0,#00B887);color:#fff;box-shadow:0 5px 18px rgba(6,214,160,0.4)}
 .ans-p:disabled{opacity:0.45;cursor:default;transform:none!important;box-shadow:none!important}
 .ans-p.selected{outline:4px solid rgba(255,255,255,0.8);transform:scale(1.06)!important}
+/* Badge huruf — teks selalu putih, bg gelap transparan biar kontras di semua warna button */
 .ans-letter-p{
   font-family:'Fredoka One',cursive;
-  font-size:1.6rem;
+  font-size:1.5rem;
   width:2rem;height:2rem;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,0.2);
+  background:rgba(0,0,0,0.25);
   border-radius:50%;
-  text-shadow:0 2px 4px rgba(0,0,0,0.3);
+  color:#fff !important;
+  text-shadow:0 1px 3px rgba(0,0,0,0.5);
   letter-spacing:0;
   flex-shrink:0;
 }
-.ans-lbl-p{font-size:0.8rem;opacity:0.9;padding:0 4px;line-height:1.2}
+.ans-lbl-p{font-size:0.8rem;opacity:0.95;padding:0 4px;line-height:1.2;color:#fff !important;text-shadow:0 1px 2px rgba(0,0,0,0.35)}
 
 /* ── CHARACTER PICKER ── */
 .char-grid{
