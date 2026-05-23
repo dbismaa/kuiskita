@@ -754,6 +754,204 @@ function stopBgMusic() {
 }
 
 /* ══════════════════════════════════
+   7. INTRO JINGLE — saat halaman dibuka
+   Lembut, singkat, "selamat datang"
+══════════════════════════════════ */
+function sfxIntro() {
+  const ctx = getCtx();
+  // Arpeggio naik: C E G C E
+  const notes = [261, 329, 392, 523, 659];
+  const delays = [0, 0.13, 0.26, 0.39, 0.52];
+  notes.forEach((freq, i) => {
+    const t   = ctx.currentTime + delays[i];
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    const rev = ctx.createDelay(0.3);
+    rev.delayTime.value = 0.18;
+    osc.connect(env); env.connect(rev); rev.connect(ctx.destination); env.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    env.gain.setValueAtTime(0, t);
+    env.gain.linearRampToValueAtTime(0.22, t + 0.04);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+    osc.start(t); osc.stop(t + 0.5);
+  });
+  // Shimmer di akhir
+  setTimeout(() => {
+    [523, 659, 784].forEach((f, i) => {
+      const t2 = ctx.currentTime + i * 0.07;
+      const o  = ctx.createOscillator();
+      const g  = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f, t2);
+      g.gain.setValueAtTime(0.12, t2);
+      g.gain.exponentialRampToValueAtTime(0.001, t2 + 0.6);
+      o.start(t2); o.stop(t2 + 0.65);
+    });
+  }, 750);
+}
+
+/* ══════════════════════════════════
+   8. SUARA JOIN BERHASIL 🎮
+   "Whoosh + pop" — masuk ke room
+══════════════════════════════════ */
+function sfxJoin() {
+  const ctx = getCtx();
+  // Whoosh sweep up
+  const osc1 = ctx.createOscillator();
+  const env1 = ctx.createGain();
+  const lp   = ctx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 2000;
+  osc1.connect(lp); lp.connect(env1); env1.connect(ctx.destination);
+  osc1.type = 'sawtooth';
+  osc1.frequency.setValueAtTime(200, ctx.currentTime);
+  osc1.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.2);
+  env1.gain.setValueAtTime(0.18, ctx.currentTime);
+  env1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+  osc1.start(ctx.currentTime); osc1.stop(ctx.currentTime + 0.23);
+
+  // Pop chord ceria
+  setTimeout(() => {
+    [523, 659, 784, 1047].forEach((f, i) => {
+      const t  = ctx.currentTime + i * 0.06;
+      const o  = ctx.createOscillator();
+      const g  = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.start(t); o.stop(t + 0.36);
+    });
+  }, 200);
+}
+
+/* ══════════════════════════════════
+   9. MUSIK LOBBY — chill lounge vibe
+   Lebih santai dari game music
+   BPM 90, nada-nada pentatonik
+══════════════════════════════════ */
+let lobbyPlaying = false;
+let lobbyNodes   = [];
+
+function startLobbyMusic() {
+  if (lobbyPlaying) return;
+  lobbyPlaying = true;
+  const ctx = getCtx();
+  const bpm = 90;
+  const beat = 60 / bpm;
+
+  // Pentatonik C: C D E G A
+  const PENTA = [261, 294, 330, 392, 440, 523, 587, 659, 784, 880];
+
+  /* ── Melodi pentatonik acak yang enak ── */
+  const LOBBY_MEL = [523,587,523,440,392,440,523,659,523,440,330,392,440,523,440,392];
+
+  function scheduleLobbyMelody() {
+    if (!lobbyPlaying) return;
+    LOBBY_MEL.forEach((freq, i) => {
+      const t   = ctx.currentTime + i * beat * 0.75;
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const del = ctx.createDelay(0.4);
+      del.delayTime.value = beat * 0.75;
+      const fb  = ctx.createGain(); fb.gain.value = 0.25;
+      osc.connect(env);
+      env.connect(ctx.destination);
+      env.connect(del); del.connect(fb); fb.connect(del);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.18, t + 0.05);
+      env.gain.setValueAtTime(0.18, t + beat * 0.5);
+      env.gain.linearRampToValueAtTime(0, t + beat * 0.7);
+      osc.start(t); osc.stop(t + beat * 0.75);
+      lobbyNodes.push(osc);
+    });
+    if (lobbyPlaying) setTimeout(scheduleLobbyMelody, LOBBY_MEL.length * beat * 750);
+  }
+
+  /* ── Bass halus ── */
+  const LOBBY_BASS = [130, 130, 146, 146, 130, 130, 110, 130];
+  function scheduleLobbyBass() {
+    if (!lobbyPlaying) return;
+    LOBBY_BASS.forEach((freq, i) => {
+      const t   = ctx.currentTime + i * beat;
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const lp  = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 250;
+      osc.connect(lp); lp.connect(env); env.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      env.gain.setValueAtTime(0.12, t);
+      env.gain.exponentialRampToValueAtTime(0.001, t + beat * 0.8);
+      osc.start(t); osc.stop(t + beat * 0.85);
+      lobbyNodes.push(osc);
+    });
+    if (lobbyPlaying) setTimeout(scheduleLobbyBass, LOBBY_BASS.length * beat * 1000);
+  }
+
+  /* ── Chord pad dreamy ── */
+  const LOBBY_CHORDS = [[261,329,392],[294,370,440],[261,329,392],[220,277,329]];
+  function scheduleLobbyChords() {
+    if (!lobbyPlaying) return;
+    const dur = beat * 2;
+    LOBBY_CHORDS.forEach((chord, i) => {
+      chord.forEach(freq => {
+        const t   = ctx.currentTime + i * dur;
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        const lp  = ctx.createBiquadFilter();
+        lp.type = 'lowpass'; lp.frequency.value = 600;
+        osc.connect(lp); lp.connect(env); env.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        env.gain.setValueAtTime(0, t);
+        env.gain.linearRampToValueAtTime(0.08, t + 0.3);
+        env.gain.setValueAtTime(0.08, t + dur - 0.3);
+        env.gain.linearRampToValueAtTime(0, t + dur);
+        osc.start(t); osc.stop(t + dur + 0.1);
+        lobbyNodes.push(osc);
+      });
+    });
+    if (lobbyPlaying) setTimeout(scheduleLobbyChords, LOBBY_CHORDS.length * dur * 1000);
+  }
+
+  /* ── Bell/chime accent sesekali ── */
+  function scheduleBell() {
+    if (!lobbyPlaying) return;
+    const bellNotes = [784, 1047, 880, 659];
+    const t = ctx.currentTime;
+    const pick = bellNotes[Math.floor(Math.random() * bellNotes.length)];
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    osc.connect(env); env.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(pick, t);
+    osc.frequency.setValueAtTime(pick * 2, t + 0.01);
+    env.gain.setValueAtTime(0.12, t);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+    osc.start(t); osc.stop(t + 1.6);
+    lobbyNodes.push(osc);
+    // Bell muncul tiap 3-6 detik random
+    if (lobbyPlaying) setTimeout(scheduleBell, 3000 + Math.random() * 3000);
+  }
+
+  setTimeout(scheduleLobbyMelody, 0);
+  setTimeout(scheduleLobbyBass,  100);
+  setTimeout(scheduleLobbyChords, 300);
+  setTimeout(scheduleBell, 2000);
+}
+
+function stopLobbyMusic() {
+  lobbyPlaying = false;
+  lobbyNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  lobbyNodes = [];
+}
+
+/* ══════════════════════════════════
    INJECT KE FUNGSI YANG ADA
 ══════════════════════════════════ */
 
@@ -772,27 +970,42 @@ window.showResult = function(ok, pts) {
   _origResult(ok, pts);
 };
 
-/* Patch showQuestion — mulai backsound */
+/* Patch showQuestion — stop lobby, mulai game music */
 const _origQ = showQuestion;
 window.showQuestion = function(room) {
+  stopLobbyMusic();
   if (!bgPlaying) startBgMusic();
   _origQ(room);
 };
 
-/* Patch showDone — hentikan musik, mainkan fanfare */
+/* Patch showDone — hentikan semua musik, mainkan fanfare */
 const _origDone = showDone;
 window.showDone = function(roomData) {
   stopBgMusic();
+  stopLobbyMusic();
   setTimeout(sfxWin, 300);
   _origDone(roomData);
 };
 
-/* Patch joinRoom untuk resume AudioContext setelah gesture user */
+/* Patch joinRoom — resume AudioContext + suara join + mulai lobby music */
 const _origJoin = joinRoom;
 window.joinRoom = async function() {
-  // Resume AudioContext (perlu gesture user di mobile)
   try { getCtx().resume(); } catch(e) {}
+  const pinEl  = document.getElementById('pin-in');
+  const nameEl = document.getElementById('name-in');
+  // Validasi cepat sebelum join
+  if (!pinEl.value.trim() || !nameEl.value.trim()) {
+    await _origJoin(); return;
+  }
   await _origJoin();
+  // Cek apakah berhasil masuk lobby
+  setTimeout(() => {
+    const lobby = document.getElementById('screen-lobby');
+    if (lobby && lobby.classList.contains('active')) {
+      sfxJoin();
+      setTimeout(startLobbyMusic, 600);
+    }
+  }, 800);
 };
 
 /* ── TICK saat timer mepet ── */
@@ -811,6 +1024,18 @@ setInterval(() => {
     }
   }
 }, 500);
+
+/* ── INTRO JINGLE — mainkan saat user pertama kali tap/klik halaman ── */
+let introPlayed = false;
+function tryPlayIntro() {
+  if (introPlayed) return;
+  introPlayed = true;
+  try { getCtx().resume().then(() => sfxIntro()); } catch(e) {}
+  document.removeEventListener('touchstart', tryPlayIntro);
+  document.removeEventListener('click', tryPlayIntro);
+}
+document.addEventListener('touchstart', tryPlayIntro, { once: true });
+document.addEventListener('click', tryPlayIntro, { once: true });
 
 /* ── TOMBOL MUTE di pojok ── */
 const muteBtn = document.createElement('button');
