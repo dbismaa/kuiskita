@@ -150,8 +150,37 @@ h1,h2,.logo-text{font-family:'Fredoka One',cursive}
 .ans-p.c4{background:linear-gradient(135deg,#06D6A0,#00B887);color:var(--dark);box-shadow:0 5px 18px rgba(6,214,160,0.4)}
 .ans-p:disabled{opacity:0.45;cursor:default;transform:none!important;box-shadow:none!important}
 .ans-p.selected{outline:4px solid rgba(255,255,255,0.8);transform:scale(1.06)!important}
-.ans-icon-p{font-size:1.4rem}
+.ans-letter-p{
+  font-family:'Fredoka One',cursive;
+  font-size:1.6rem;
+  width:2rem;height:2rem;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.2);
+  border-radius:50%;
+  text-shadow:0 2px 4px rgba(0,0,0,0.3);
+  letter-spacing:0;
+  flex-shrink:0;
+}
 .ans-lbl-p{font-size:0.8rem;opacity:0.9;padding:0 4px;line-height:1.2}
+
+/* ── CHARACTER PICKER ── */
+.char-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);
+  gap:0.4rem;width:100%;margin-bottom:0.75rem;
+}
+.char-btn{
+  aspect-ratio:1;border-radius:12px;font-size:1.4rem;
+  background:var(--dark);border:2px solid var(--border);
+  cursor:pointer;transition:transform 0.15s,border-color 0.2s,background 0.2s;
+  display:flex;align-items:center;justify-content:center;
+}
+.char-btn:hover{transform:scale(1.12);border-color:var(--c2)}
+.char-btn.selected{
+  border-color:var(--c2);
+  background:rgba(76,201,240,0.15);
+  box-shadow:0 0 12px rgba(76,201,240,0.4);
+  transform:scale(1.1);
+}
 
 /* ── ANSWERED ── */
 .answered-icon{font-size:5rem;animation:bounceIn 0.5s ease}
@@ -238,13 +267,29 @@ h1,h2,.logo-text{font-family:'Fredoka One',cursive}
       <input class="finput name-finput" type="text" id="name-in"
         placeholder="Masukkan nama..." maxlength="20" />
 
+      <label class="flabel">🎭 Pilih Karakter</label>
+      <div class="char-grid" id="char-grid">
+        <button class="char-btn selected" data-char="🦊" onclick="selectChar(this,'🦊')">🦊</button>
+        <button class="char-btn" data-char="🐼" onclick="selectChar(this,'🐼')">🐼</button>
+        <button class="char-btn" data-char="🦁" onclick="selectChar(this,'🦁')">🦁</button>
+        <button class="char-btn" data-char="🐯" onclick="selectChar(this,'🐯')">🐯</button>
+        <button class="char-btn" data-char="🐸" onclick="selectChar(this,'🐸')">🐸</button>
+        <button class="char-btn" data-char="🐧" onclick="selectChar(this,'🐧')">🐧</button>
+        <button class="char-btn" data-char="🦄" onclick="selectChar(this,'🦄')">🦄</button>
+        <button class="char-btn" data-char="🐲" onclick="selectChar(this,'🐲')">🐲</button>
+        <button class="char-btn" data-char="🤖" onclick="selectChar(this,'🤖')">🤖</button>
+        <button class="char-btn" data-char="👻" onclick="selectChar(this,'👻')">👻</button>
+        <button class="char-btn" data-char="🦋" onclick="selectChar(this,'🦋')">🦋</button>
+        <button class="char-btn" data-char="🐙" onclick="selectChar(this,'🐙')">🐙</button>
+      </div>
+
       <button class="btn-join" onclick="joinRoom()">Masuk Room! 🚀</button>
     </div>
   </div>
 
   <!-- LOBBY -->
   <div id="screen-lobby" class="screen">
-    <div class="lobby-anim">🎮</div>
+    <div class="lobby-anim" id="lobby-char-disp">🦊</div>
     <div class="my-name-big" id="my-name-disp">Nama</div>
     <div class="lobby-status">Berhasil bergabung! Tunggu host mulai ya~</div>
     <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
@@ -257,16 +302,16 @@ h1,h2,.logo-text{font-family:'Fredoka One',cursive}
     <div class="q-card-p" id="qp-text">Memuat soal...</div>
     <div class="ans-grid-p">
       <button class="ans-p c1" id="btn-a" onclick="submitAnswer('a')">
-        <span class="ans-icon-p">▲</span><span class="ans-lbl-p" id="lbl-a">–</span>
+        <span class="ans-letter-p">A</span><span class="ans-lbl-p" id="lbl-a">–</span>
       </button>
       <button class="ans-p c2" id="btn-b" onclick="submitAnswer('b')">
-        <span class="ans-icon-p">◆</span><span class="ans-lbl-p" id="lbl-b">–</span>
+        <span class="ans-letter-p">B</span><span class="ans-lbl-p" id="lbl-b">–</span>
       </button>
       <button class="ans-p c3" id="btn-c" onclick="submitAnswer('c')">
-        <span class="ans-icon-p">●</span><span class="ans-lbl-p" id="lbl-c">–</span>
+        <span class="ans-letter-p">C</span><span class="ans-lbl-p" id="lbl-c">–</span>
       </button>
       <button class="ans-p c4" id="btn-d" onclick="submitAnswer('d')">
-        <span class="ans-icon-p">■</span><span class="ans-lbl-p" id="lbl-d">–</span>
+        <span class="ans-letter-p">D</span><span class="ans-lbl-p" id="lbl-d">–</span>
       </button>
     </div>
   </div>
@@ -317,8 +362,15 @@ const FIREBASE_URL='https://kuiskita-52582-default-rtdb.asia-southeast1.firebase
 let db,roomRef,playerRef;
 let myUID='p_'+Math.random().toString(36).slice(2,9);
 let myName='',myScore=0,currentQIdx=-1;
+let myChar='🦊';
 let hasAnswered=false,qStartTime=0,timePerQ=20;
 let timerInterval=null,myAnswer='';
+
+function selectChar(btn, char) {
+  document.querySelectorAll('.char-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  myChar = char;
+}
 
 /* ═══════ PARTICLES ═══════ */
 (function spawnP(){
@@ -363,11 +415,12 @@ async function joinRoom(){
 
   roomRef=db.ref('rooms/'+pin);
   playerRef=roomRef.child('players/'+myUID);
-  await playerRef.set({name:myName,score:0});
+  await playerRef.set({name:myName,score:0,char:myChar});
   playerRef.onDisconnect().remove();
   timePerQ=room.timePerQ||20;
 
   document.getElementById('my-name-disp').textContent=myName;
+  document.getElementById('lobby-char-disp').textContent=myChar;
   showScreen('lobby');
 
   /* listen state */
@@ -491,34 +544,533 @@ function spawnConfetti(){
   }
 }
 </script>
-</body>
-</html>
 
 <!-- ══════════════════════════════════ AUDIO ENGINE ══ -->
 <script>
 /* ════════════════════════════════════════════════════
-   KuisKita Audio Engine — 100% Web Audio API
-   Tidak butuh file mp3 sama sekali!
+   KuisKita Audio Engine — Web Audio API
+   FIXED: no overlap, no echo, no stacking
 ════════════════════════════════════════════════════ */
 
 let audioCtx = null;
-let bgNodes  = [];   // simpan semua node backsound
 let bgPlaying = false;
 let bgVolume  = 0.18;
+let bgLoopId  = 0; // cancel stale loops
+
+let lobbyPlaying = false;
+let lobbyLoopId  = 0;
+
+// Semua "managed" nodes disimpan per loop agar bisa di-stop bersih
+let bgNodes    = [];
+let lobbyNodes = [];
 
 function getCtx() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   return audioCtx;
 }
 
-/* ── MASTER GAIN (volume global) ── */
-function makeMaster(vol) {
+/* ══════════════════════════════════
+   1. SUARA KLIK TOMBOL
+══════════════════════════════════ */
+function sfxClick() {
   const ctx = getCtx();
-  const g   = ctx.createGain();
-  g.gain.setValueAtTime(vol, ctx.currentTime);
-  g.connect(ctx.destination);
-  return g;
+  const osc = ctx.createOscillator();
+  const env = ctx.createGain();
+  osc.connect(env); env.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(880, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.08);
+  env.gain.setValueAtTime(0.25, ctx.currentTime);
+  env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+  osc.start(ctx.currentTime);
+  osc.stop(ctx.currentTime + 0.13);
 }
+
+/* ══════════════════════════════════
+   2. SUARA BENAR ✅
+══════════════════════════════════ */
+function sfxCorrect() {
+  const ctx = getCtx();
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    const t   = ctx.currentTime + i * 0.1;
+    osc.connect(env); env.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, t);
+    env.gain.setValueAtTime(0, t);
+    env.gain.linearRampToValueAtTime(0.3, t + 0.02);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    osc.start(t); osc.stop(t + 0.26);
+  });
+}
+
+/* ══════════════════════════════════
+   3. SUARA SALAH ❌
+══════════════════════════════════ */
+function sfxWrong() {
+  const ctx = getCtx();
+  const osc  = ctx.createOscillator();
+  const dist = ctx.createWaveShaper();
+  const env  = ctx.createGain();
+  const curve = new Float32Array(256);
+  for (let i = 0; i < 256; i++) {
+    const x = (i * 2) / 256 - 1;
+    curve[i] = (Math.PI + 200) * x / (Math.PI + 200 * Math.abs(x));
+  }
+  dist.curve = curve;
+  osc.connect(dist); dist.connect(env); env.connect(ctx.destination);
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(220, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.3);
+  env.gain.setValueAtTime(0.4, ctx.currentTime);
+  env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+  osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.36);
+}
+
+/* ══════════════════════════════════
+   4. TICK TIMER
+══════════════════════════════════ */
+function sfxTick() {
+  const ctx = getCtx();
+  const osc = ctx.createOscillator();
+  const env = ctx.createGain();
+  osc.connect(env); env.connect(ctx.destination);
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(1200, ctx.currentTime);
+  env.gain.setValueAtTime(0.08, ctx.currentTime);
+  env.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.06);
+  osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.07);
+}
+
+/* ══════════════════════════════════
+   5. FANFARE MENANG 🏆
+══════════════════════════════════ */
+function sfxWin() {
+  const ctx  = getCtx();
+  const mel  = [392,392,392,311,392,311,392];
+  const durs = [0.15,0.15,0.15,0.3,0.15,0.3,0.5];
+  let t = ctx.currentTime;
+  mel.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    osc.connect(env); env.connect(ctx.destination);
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, t);
+    env.gain.setValueAtTime(0, t);
+    env.gain.linearRampToValueAtTime(0.4, t + 0.02);
+    env.gain.setValueAtTime(0.4, t + durs[i] - 0.03);
+    env.gain.linearRampToValueAtTime(0, t + durs[i]);
+    osc.start(t); osc.stop(t + durs[i] + 0.01);
+    t += durs[i] + 0.02;
+  });
+  setTimeout(() => {
+    const ctx2 = getCtx();
+    [392, 494, 587, 784].forEach(f => {
+      const o = ctx2.createOscillator();
+      const g = ctx2.createGain();
+      o.connect(g); g.connect(ctx2.destination);
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f, ctx2.currentTime);
+      g.gain.setValueAtTime(0.12, ctx2.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime + 1.5);
+      o.start(ctx2.currentTime); o.stop(ctx2.currentTime + 1.6);
+    });
+  }, 700);
+}
+
+/* ══════════════════════════════════
+   6. BACKSOUND — Game Loop Music 🎵
+   FIX: pakai clock-based scheduling, 1 loop at a time
+══════════════════════════════════ */
+const BASS_PATTERN = [130,130,164,164,146,146,174,174];
+const MEL          = [523,587,659,698,659,587,523,494,523,587,698,784,698,659,523,392];
+const CHORDS       = [[261,329,392],[294,370,440],[329,392,494],[261,329,392]];
+
+function startBgMusic() {
+  if (bgPlaying) return;
+  bgPlaying = true;
+  const myId = ++bgLoopId;
+  const ctx  = getCtx();
+  const BPM  = 128;
+  const BEAT = 60 / BPM;
+
+  // Jadwalkan 1 siklus, lalu reschedule tepat saat siklus selesai
+  function scheduleOneCycle(startTime) {
+    if (!bgPlaying || bgLoopId !== myId) return;
+
+    const bassLen   = BASS_PATTERN.length * BEAT * 0.5;
+    const melLen    = MEL.length * BEAT * 0.5;
+    const chordsLen = CHORDS.length * 1.0;
+    const cycleLen  = Math.max(bassLen, melLen, chordsLen);
+
+    // BASS
+    BASS_PATTERN.forEach((freq, i) => {
+      const t   = startTime + i * BEAT * 0.5;
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const lp  = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 300;
+      osc.connect(lp); lp.connect(env); env.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, t);
+      env.gain.setValueAtTime(bgVolume * 0.7, t);
+      env.gain.exponentialRampToValueAtTime(0.001, t + BEAT * 0.4);
+      osc.start(t); osc.stop(t + BEAT * 0.45);
+      bgNodes.push(osc);
+    });
+
+    // MELODY
+    MEL.forEach((freq, i) => {
+      const t   = startTime + i * BEAT * 0.5;
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      osc.connect(env); env.connect(ctx.destination);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, t);
+      env.gain.setValueAtTime(bgVolume * 0.5, t);
+      env.gain.exponentialRampToValueAtTime(0.001, t + BEAT * 0.35);
+      osc.start(t); osc.stop(t + BEAT * 0.4);
+      bgNodes.push(osc);
+    });
+
+    // CHORDS
+    CHORDS.forEach((chord, i) => {
+      chord.forEach(freq => {
+        const t   = startTime + i * 1.0;
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        const lp  = ctx.createBiquadFilter();
+        lp.type = 'lowpass'; lp.frequency.value = 800;
+        osc.connect(lp); lp.connect(env); env.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        env.gain.setValueAtTime(0, t);
+        env.gain.linearRampToValueAtTime(bgVolume * 0.25, t + 0.1);
+        env.gain.setValueAtTime(bgVolume * 0.25, t + 0.85);
+        env.gain.linearRampToValueAtTime(0, t + 1.0);
+        osc.start(t); osc.stop(t + 1.05);
+        bgNodes.push(osc);
+      });
+    });
+
+    // HI-HAT (8 ketukan dalam 1 siklus bass)
+    for (let i = 0; i < 8; i++) {
+      const t   = startTime + i * BEAT * 0.5;
+      const buf = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * 0.05), ctx.sampleRate);
+      const dat = buf.getChannelData(0);
+      for (let j = 0; j < dat.length; j++) dat[j] = Math.random() * 2 - 1;
+      const src = ctx.createBufferSource();
+      const env = ctx.createGain();
+      const hp  = ctx.createBiquadFilter();
+      hp.type = 'highpass'; hp.frequency.value = 8000;
+      src.buffer = buf;
+      src.connect(hp); hp.connect(env); env.connect(ctx.destination);
+      env.gain.setValueAtTime(bgVolume * 0.15, t);
+      env.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+      src.start(t);
+      bgNodes.push(src);
+    }
+
+    // Jadwalkan siklus berikutnya persis setelah siklus ini selesai
+    const delay = (startTime + cycleLen - ctx.currentTime) * 1000;
+    setTimeout(() => scheduleOneCycle(startTime + cycleLen), Math.max(0, delay - 50));
+  }
+
+  scheduleOneCycle(ctx.currentTime + 0.05);
+}
+
+function stopBgMusic() {
+  bgPlaying = false;
+  bgLoopId++;
+  bgNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  bgNodes = [];
+}
+
+/* ══════════════════════════════════
+   7. INTRO JINGLE
+══════════════════════════════════ */
+function sfxIntro() {
+  const ctx = getCtx();
+  const notes = [261, 329, 392, 523, 659];
+  const delays = [0, 0.13, 0.26, 0.39, 0.52];
+  notes.forEach((freq, i) => {
+    const t   = ctx.currentTime + delays[i];
+    const osc = ctx.createOscillator();
+    const env = ctx.createGain();
+    osc.connect(env); env.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, t);
+    env.gain.setValueAtTime(0, t);
+    env.gain.linearRampToValueAtTime(0.22, t + 0.04);
+    env.gain.exponentialRampToValueAtTime(0.001, t + 0.45);
+    osc.start(t); osc.stop(t + 0.5);
+  });
+  setTimeout(() => {
+    const ctx2 = getCtx();
+    [523, 659, 784].forEach((f, i) => {
+      const t2 = ctx2.currentTime + i * 0.07;
+      const o  = ctx2.createOscillator();
+      const g  = ctx2.createGain();
+      o.connect(g); g.connect(ctx2.destination);
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f, t2);
+      g.gain.setValueAtTime(0.12, t2);
+      g.gain.exponentialRampToValueAtTime(0.001, t2 + 0.6);
+      o.start(t2); o.stop(t2 + 0.65);
+    });
+  }, 750);
+}
+
+/* ══════════════════════════════════
+   8. SUARA JOIN BERHASIL
+══════════════════════════════════ */
+function sfxJoin() {
+  const ctx = getCtx();
+  const osc1 = ctx.createOscillator();
+  const env1 = ctx.createGain();
+  const lp   = ctx.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = 2000;
+  osc1.connect(lp); lp.connect(env1); env1.connect(ctx.destination);
+  osc1.type = 'sawtooth';
+  osc1.frequency.setValueAtTime(200, ctx.currentTime);
+  osc1.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.2);
+  env1.gain.setValueAtTime(0.18, ctx.currentTime);
+  env1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+  osc1.start(ctx.currentTime); osc1.stop(ctx.currentTime + 0.23);
+
+  setTimeout(() => {
+    const ctx2 = getCtx();
+    [523, 659, 784, 1047].forEach((f, i) => {
+      const t  = ctx2.currentTime + i * 0.06;
+      const o  = ctx2.createOscillator();
+      const g  = ctx2.createGain();
+      o.connect(g); g.connect(ctx2.destination);
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(f, t);
+      g.gain.setValueAtTime(0.2, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.start(t); o.stop(t + 0.36);
+    });
+  }, 200);
+}
+
+/* ══════════════════════════════════
+   9. MUSIK LOBBY — chill lounge
+   FIX: clock-based, no delay feedback leak
+══════════════════════════════════ */
+const LOBBY_MEL    = [523,587,523,440,392,440,523,659,523,440,330,392,440,523,440,392];
+const LOBBY_BASS   = [130,130,146,146,130,130,110,130];
+const LOBBY_CHORDS = [[261,329,392],[294,370,440],[261,329,392],[220,277,329]];
+
+function startLobbyMusic() {
+  if (lobbyPlaying) return;
+  lobbyPlaying = true;
+  const myId = ++lobbyLoopId;
+  const ctx  = getCtx();
+  const BPM  = 90;
+  const BEAT = 60 / BPM;
+
+  function scheduleOneLobbyLoop(startTime) {
+    if (!lobbyPlaying || lobbyLoopId !== myId) return;
+
+    const melLen    = LOBBY_MEL.length * BEAT * 0.75;
+    const bassLen   = LOBBY_BASS.length * BEAT;
+    const chordsLen = LOBBY_CHORDS.length * BEAT * 2;
+    const cycleLen  = Math.max(melLen, bassLen, chordsLen);
+
+    // MELODY — pakai reverb via 2 output, tapi TANPA feedback loop yang bocor
+    LOBBY_MEL.forEach((freq, i) => {
+      const t   = startTime + i * BEAT * 0.75;
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      // Simple delay tap (bukan feedback loop yang bocor)
+      const del = ctx.createDelay(1.0);
+      del.delayTime.value = BEAT * 0.75;
+      const delGain = ctx.createGain();
+      delGain.gain.value = 0.22;
+      osc.connect(env);
+      env.connect(ctx.destination);
+      env.connect(del);
+      del.connect(delGain);
+      delGain.connect(ctx.destination); // satu echo saja, tidak loop balik
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.18, t + 0.05);
+      env.gain.setValueAtTime(0.18, t + BEAT * 0.5);
+      env.gain.linearRampToValueAtTime(0, t + BEAT * 0.7);
+      osc.start(t); osc.stop(t + BEAT * 0.75);
+      lobbyNodes.push(osc);
+    });
+
+    // BASS
+    LOBBY_BASS.forEach((freq, i) => {
+      const t   = startTime + i * BEAT;
+      const osc = ctx.createOscillator();
+      const env = ctx.createGain();
+      const lp  = ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 250;
+      osc.connect(lp); lp.connect(env); env.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, t);
+      env.gain.setValueAtTime(0.12, t);
+      env.gain.exponentialRampToValueAtTime(0.001, t + BEAT * 0.8);
+      osc.start(t); osc.stop(t + BEAT * 0.85);
+      lobbyNodes.push(osc);
+    });
+
+    // CHORDS
+    LOBBY_CHORDS.forEach((chord, i) => {
+      chord.forEach(freq => {
+        const dur = BEAT * 2;
+        const t   = startTime + i * dur;
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        const lp  = ctx.createBiquadFilter();
+        lp.type = 'lowpass'; lp.frequency.value = 600;
+        osc.connect(lp); lp.connect(env); env.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, t);
+        env.gain.setValueAtTime(0, t);
+        env.gain.linearRampToValueAtTime(0.08, t + 0.3);
+        env.gain.setValueAtTime(0.08, t + dur - 0.3);
+        env.gain.linearRampToValueAtTime(0, t + dur);
+        osc.start(t); osc.stop(t + dur + 0.1);
+        lobbyNodes.push(osc);
+      });
+    });
+
+    // BELL ACCENT — satu per cycle di waktu acak dalam cycle
+    const bellNotes = [784, 1047, 880, 659];
+    const bellTime  = startTime + Math.random() * cycleLen * 0.5 + cycleLen * 0.2;
+    const pick = bellNotes[Math.floor(Math.random() * bellNotes.length)];
+    const bellOsc = ctx.createOscillator();
+    const bellEnv = ctx.createGain();
+    bellOsc.connect(bellEnv); bellEnv.connect(ctx.destination);
+    bellOsc.type = 'sine';
+    bellOsc.frequency.setValueAtTime(pick, bellTime);
+    bellOsc.frequency.setValueAtTime(pick * 2, bellTime + 0.01);
+    bellEnv.gain.setValueAtTime(0.1, bellTime);
+    bellEnv.gain.exponentialRampToValueAtTime(0.001, bellTime + 1.5);
+    bellOsc.start(bellTime); bellOsc.stop(bellTime + 1.6);
+    lobbyNodes.push(bellOsc);
+
+    // Schedule next loop tepat setelah cycle ini
+    const delay = (startTime + cycleLen - ctx.currentTime) * 1000;
+    setTimeout(() => scheduleOneLobbyLoop(startTime + cycleLen), Math.max(0, delay - 50));
+  }
+
+  scheduleOneLobbyLoop(ctx.currentTime + 0.05);
+}
+
+function stopLobbyMusic() {
+  lobbyPlaying = false;
+  lobbyLoopId++;
+  lobbyNodes.forEach(n => { try { n.stop(); } catch(e){} });
+  lobbyNodes = [];
+}
+
+/* ══════════════════════════════════
+   INJECT KE FUNGSI YANG ADA
+══════════════════════════════════ */
+const _origSubmit = submitAnswer;
+window.submitAnswer = function(key) {
+  sfxClick();
+  _origSubmit(key);
+};
+
+const _origResult = showResult;
+window.showResult = function(ok, pts) {
+  stopBgMusic();
+  if (ok) sfxCorrect(); else sfxWrong();
+  _origResult(ok, pts);
+};
+
+const _origQ = showQuestion;
+window.showQuestion = function(room) {
+  stopLobbyMusic();
+  if (!bgPlaying) startBgMusic();
+  _origQ(room);
+};
+
+const _origDone = showDone;
+window.showDone = function(roomData) {
+  stopBgMusic();
+  stopLobbyMusic();
+  setTimeout(sfxWin, 300);
+  _origDone(roomData);
+};
+
+const _origJoin = joinRoom;
+window.joinRoom = async function() {
+  try { getCtx().resume(); } catch(e) {}
+  const pinEl  = document.getElementById('pin-in');
+  const nameEl = document.getElementById('name-in');
+  if (!pinEl.value.trim() || !nameEl.value.trim()) {
+    await _origJoin(); return;
+  }
+  await _origJoin();
+  setTimeout(() => {
+    const lobby = document.getElementById('screen-lobby');
+    if (lobby && lobby.classList.contains('active')) {
+      sfxJoin();
+      setTimeout(startLobbyMusic, 600);
+    }
+  }, 800);
+};
+
+/* ── TICK SAAT TIMER MEPET ── */
+let lastTickSecond = -1;
+setInterval(() => {
+  const fill = document.getElementById('timer-fill');
+  if (!fill) return;
+  const pct = parseFloat(fill.style.width) || 100;
+  if (pct < 26 && bgPlaying) {
+    const now = Math.floor(Date.now() / 1000);
+    if (now !== lastTickSecond) {
+      lastTickSecond = now;
+      sfxTick();
+    }
+  }
+}, 500);
+
+/* ── INTRO JINGLE ── */
+let introPlayed = false;
+function tryPlayIntro() {
+  if (introPlayed) return;
+  introPlayed = true;
+  try { getCtx().resume().then(() => sfxIntro()); } catch(e) {}
+}
+document.addEventListener('touchstart', tryPlayIntro, { once: true });
+document.addEventListener('click', tryPlayIntro, { once: true });
+
+/* ── TOMBOL MUTE ── */
+const muteBtn = document.createElement('button');
+muteBtn.innerHTML = '🔊';
+muteBtn.title = 'Mute/Unmute musik';
+muteBtn.style.cssText = `
+  position:fixed;bottom:1rem;right:1rem;
+  width:44px;height:44px;border-radius:50%;
+  background:rgba(19,19,42,0.9);border:1px solid #252545;
+  font-size:1.2rem;cursor:pointer;z-index:999;
+  transition:transform 0.2s;
+`;
+muteBtn.onmouseenter = () => muteBtn.style.transform = 'scale(1.1)';
+muteBtn.onmouseleave = () => muteBtn.style.transform = 'scale(1)';
+muteBtn.onclick = () => {
+  if (!audioCtx) return;
+  if (audioCtx.state === 'running') {
+    audioCtx.suspend();
+    muteBtn.innerHTML = '🔇';
+  } else {
+    audioCtx.resume();
+    muteBtn.innerHTML = '🔊';
+  }
+};
+document.body.appendChild(muteBtn);
+</script>
 
 /* ══════════════════════════════════
    1. SUARA KLIK TOMBOL
@@ -1062,3 +1614,6 @@ muteBtn.onclick = () => {
 };
 document.body.appendChild(muteBtn);
 </script>
+
+</body>
+</html>
